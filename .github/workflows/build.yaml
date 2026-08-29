@@ -85,7 +85,7 @@ jobs:
           BOARD: ${{ matrix.board }}
           TAG: ${{ steps.tag.outputs.tag }}
         run: |
-          IMAGE="${{ env.REGISTRY }}/pkgs/sbc-raspberrypi"
+          IMAGE="${{ env.REGISTRY }}/sbc-raspberrypi"
           if [[ "${BOARD}" != "rpi_generic" ]]; then
             IMAGE="${IMAGE}-${BOARD}"
           fi

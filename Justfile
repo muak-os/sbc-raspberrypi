@@ -44,15 +44,12 @@ shared:
     printf "{{ green }}Shared images built{{ reset }}\n"
 
 # Build the BOARD overlay image (linux/arm64) and push when PUSH=true
-#
-# The muak release manifest maps rpi_generic to pkgs/sbc-raspberrypi; other
-# boards get their own repository suffix until a manifest entry exists.
 [script]
 build: shared
     if [ "{{ board }}" = "rpi_generic" ]; then
-        image_name="pkgs/sbc-raspberrypi"
+        image_name="sbc-raspberrypi"
     else
-        image_name="pkgs/sbc-raspberrypi-{{ board }}"
+        image_name="sbc-raspberrypi-{{ board }}"
     fi
     uboot_image="{{ registry }}/sbc-raspberrypi/u-boot:{{ tag }}"
     firmware_image="{{ registry }}/sbc-raspberrypi/firmware:{{ tag }}"
