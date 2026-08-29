@@ -86,8 +86,8 @@ jobs:
           TAG: ${{ steps.tag.outputs.tag }}
         run: |
           case "${BOARD}" in
-            rpi_generic) IMAGE="${{ env.REGISTRY }}/sbc/raspberry-pi" ;;
-            rpi_5)       IMAGE="${{ env.REGISTRY }}/sbc/raspberry-pi-5" ;;
+            rpi_generic) IMAGE="${{ env.REGISTRY }}/sbc/raspberrypi" ;;
+            rpi_5)       IMAGE="${{ env.REGISTRY }}/sbc/raspberrypi-5" ;;
           esac
           echo "### ${BOARD} Built" >> "${GITHUB_STEP_SUMMARY}"
           echo "- **Tag:** \`${TAG}\`" >> "${GITHUB_STEP_SUMMARY}"

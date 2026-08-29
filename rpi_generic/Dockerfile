@@ -1,8 +1,8 @@
 # syntax = docker/dockerfile-upstream:1.26.0-labs
 # rpi_generic (Pi 4 / 400 / CM4, BCM2711) overlay for muak.
 
-ARG UBOOT_IMAGE=sbc/raspberry-pi/u-boot:latest
-ARG FIRMWARE_IMAGE=sbc/raspberry-pi/firmware:latest
+ARG UBOOT_IMAGE=sbc/raspberrypi/u-boot:latest
+ARG FIRMWARE_IMAGE=sbc/raspberrypi/firmware:latest
 
 FROM ${UBOOT_IMAGE} AS uboot
 FROM ${FIRMWARE_IMAGE} AS firmware
