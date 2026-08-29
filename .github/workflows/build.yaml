@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        board: '${{ fromJSON(github.event_name == ''workflow_dispatch'' && inputs.board != '''' ? format(''["{0}"]'', inputs.board) : github.event_name == ''pull_request'' ? ''["rpi_generic"]'' : ''["rpi_generic", "rpi_5"]'') }}'
+        board: [rpi_generic, rpi_5]
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v6
@@ -66,11 +66,11 @@ jobs:
           fi
 
       - name: Build shared images (no push)
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && matrix.board == 'rpi_generic'
         run: just shared
 
       - name: Build and push overlay
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.board == matrix.board)
         run: just build
         env:
           CONTAINER_RUNTIME: docker
@@ -80,7 +80,7 @@ jobs:
           TAG: ${{ steps.tag.outputs.tag }}
 
       - name: Build summary
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.board == matrix.board)
         env:
           BOARD: ${{ matrix.board }}
           TAG: ${{ steps.tag.outputs.tag }}
@@ -92,4 +92,3 @@ jobs:
           echo "### ${BOARD} Built" >> "${GITHUB_STEP_SUMMARY}"
           echo "- **Tag:** \`${TAG}\`" >> "${GITHUB_STEP_SUMMARY}"
           echo "- **Image:** \`${IMAGE}:${TAG}\`" >> "${GITHUB_STEP_SUMMARY}"
-
