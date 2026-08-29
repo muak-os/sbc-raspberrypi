@@ -23,7 +23,6 @@ board := env_var_or_default("BOARD", "rpi_generic")
 
 container_runtime := env_var_or_default("CONTAINER_RUNTIME", "podman")
 build_cmd := if container_runtime == "podman" { "podman build" } else { "docker buildx build" }
-push_cmd := if push == "true" { if container_runtime == "podman" { "podman push --tls-verify=false" } else { "docker push" } } else { "true" }
 provenance_arg := if container_runtime == "podman" { "" } else { "--provenance=false" }
 common_args := "--platform=linux/arm64 --progress=" + env_var_or_default("PROGRESS", "auto") + " " + provenance_arg
 
@@ -74,15 +73,24 @@ _build-oci name context dockerfile *extra:
     if [ "{{ latest }}" = "true" ]; then
         tags="${tags} --tag {{ registry }}/{{ name }}:latest"
     fi
+    if [ "{{ container_runtime }}" = "podman" ]; then
+        push_flags=""
+    elif [ "{{ push }}" = "true" ]; then
+        push_flags="--push"
+    else
+        push_flags=""
+    fi
     printf "{{ cyan }}Building OCI:{{ reset }} {{ name }} (push={{ push }}, latest={{ latest }})\n"
-    {{ build_cmd }} {{ common_args }} \
+    {{ build_cmd }} {{ common_args }} ${push_flags} \
         $(just _cache-from "{{ name }}") $(just _cache-to "{{ name }}") \
         ${tags} {{ extra }} \
-        --file {{ dockerfile }} \
+        --file {{ context }}/{{ dockerfile }} \
         {{ context }}
-    {{ push_cmd }} "${image}"
-    if [ "{{ latest }}" = "true" ]; then
-        {{ push_cmd }} "{{ registry }}/{{ name }}:latest"
+    if [ "{{ container_runtime }}" = "podman" ] && [ "{{ push }}" = "true" ]; then
+        podman push --tls-verify=false "${image}"
+        if [ "{{ latest }}" = "true" ]; then
+            podman push --tls-verify=false "{{ registry }}/{{ name }}:latest"
+        fi
     fi
 
 [private]
