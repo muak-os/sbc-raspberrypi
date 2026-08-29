@@ -5,41 +5,7 @@ The Raspberry Pi boot overlays for [muak](https://github.com/muak-os/muak).
 The Pi 5 firmware moved the GPU firmware into the SPI-flash bootloader on the board, so the boot partition needs no
 `start*.elf` / `fixup*.dat` / `bootcode.bin`. This is the only difference between the two overlays.
 
-## Overlay OCI layout
-
-The same UEFI firmware hand-off applies to both overlays; the Pi 5 overlay is
-just slimmer because the GPU firmware is baked into its bootloader.
-
-```
-rpi_generic/
-└── partitions/
-    └── C12A7328-F81F-11D2-BA4B-00A0C93EC93B/   # EFI System Partition GUID
-        ├── config.txt
-        ├── u-boot.bin
-        ├── start4.elf
-        ├── fixup4.dat
-        ├── bootcode.bin
-        ├── bcm2711-rpi-4-b.dtb
-        ├── bcm2711-rpi-400.dtb
-        ├── bcm2711-rpi-cm4.dtb
-        ├── overlays/disable-bt.dtbo
-        ├── overlays/disable-wifi.dtbo
-        └── ... (firmware boot files)
-
-rpi_5/
-└── partitions/
-    └── C12A7328-F81F-11D2-BA4B-00A0C93EC93B/
-        ├── config.txt
-        ├── u-boot.bin
-        ├── bcm2712-rpi-5-b.dtb
-        ├── bcm2712-rpi-cm5-cm4io.dtb
-        ├── bcm2712-rpi-cm5-cm5io.dtb
-        ├── bcm2712d0-rpi-5-b.dtb
-        ├── overlays/...
-        └── COPYING.linux
-```
-
-## Artifacts
+## Shared Blobs
 
 | Artifact | Version | Source |
 | -------- | ------- | ------ |
