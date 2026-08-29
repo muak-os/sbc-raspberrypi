@@ -85,10 +85,10 @@ jobs:
           BOARD: ${{ matrix.board }}
           TAG: ${{ steps.tag.outputs.tag }}
         run: |
-          IMAGE="${{ env.REGISTRY }}/sbc-raspberrypi"
-          if [[ "${BOARD}" != "rpi_generic" ]]; then
-            IMAGE="${IMAGE}-${BOARD}"
-          fi
+          case "${BOARD}" in
+            rpi_generic) IMAGE="${{ env.REGISTRY }}/sbc/raspberry-pi" ;;
+            rpi_5)       IMAGE="${{ env.REGISTRY }}/sbc/raspberry-pi-5" ;;
+          esac
           echo "### ${BOARD} Built" >> "${GITHUB_STEP_SUMMARY}"
           echo "- **Tag:** \`${TAG}\`" >> "${GITHUB_STEP_SUMMARY}"
           echo "- **Image:** \`${IMAGE}:${TAG}\`" >> "${GITHUB_STEP_SUMMARY}"

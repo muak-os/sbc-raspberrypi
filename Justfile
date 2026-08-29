@@ -30,6 +30,7 @@ common_args := "--platform=linux/arm64 --progress=" + env_var_or_default("PROGRE
 
 cyan := '\e[36m'
 green := '\e[32m'
+red := '\e[31m'
 reset := '\e[0m'
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -39,20 +40,20 @@ reset := '\e[0m'
 # Build the shared images needed by the board overlays (u-boot, firmware)
 [script]
 shared:
-    just _build-oci sbc-raspberrypi/u-boot shared/u-boot Dockerfile
-    just _build-oci sbc-raspberrypi/firmware shared/raspberrypi-firmware Dockerfile
+    just _build-oci sbc/raspberry-pi/u-boot shared/u-boot Dockerfile
+    just _build-oci sbc/raspberry-pi/firmware shared/raspberrypi-firmware Dockerfile
     printf "{{ green }}Shared images built{{ reset }}\n"
 
 # Build the BOARD overlay image (linux/arm64) and push when PUSH=true
 [script]
 build: shared
-    if [ "{{ board }}" = "rpi_generic" ]; then
-        image_name="sbc-raspberrypi"
-    else
-        image_name="sbc-raspberrypi-{{ board }}"
-    fi
-    uboot_image="{{ registry }}/sbc-raspberrypi/u-boot:{{ tag }}"
-    firmware_image="{{ registry }}/sbc-raspberrypi/firmware:{{ tag }}"
+    uboot_image="{{ registry }}/sbc/raspberry-pi/u-boot:{{ tag }}"
+    firmware_image="{{ registry }}/sbc/raspberry-pi/firmware:{{ tag }}"
+    case "{{ board }}" in
+        rpi_generic) image_name="sbc/raspberry-pi" ;;
+        rpi_5)       image_name="sbc/raspberry-pi-5" ;;
+        *) printf "{{ red }}Error:{{ reset }} no image name for board {{ board }}\n"; exit 1 ;;
+    esac
     just _build-oci "$image_name" "{{ board }}" Dockerfile \
         --build-arg "UBOOT_IMAGE=$uboot_image" \
         --build-arg "FIRMWARE_IMAGE=$firmware_image"
