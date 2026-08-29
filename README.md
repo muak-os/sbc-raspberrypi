@@ -22,16 +22,3 @@ podman run -d -p 5000:5000 --name registry docker.io/library/registry:3
 
 REGISTRY="localhost:5000" BOARD=rpi_5 PUSH=true LATEST=true just build
 ```
-
-## Flash And Test
-
-1. Get the raw artifact.
-2. Decompress and write it to an SD card:
-   ```sh
-   zstd -d muak.raw.zst -o muak.raw
-   sudo dd if=muak.raw of=/dev/sdX bs=4M conv=fsync
-   ```
-3. Attach a USB-UART adapter to the Pi GPIO (pin 8 = TXD, pin 10 = RXD,
-   GND), 115200 8N1.
-4. Power on. You should see the U-Boot banner, then muak's kernel console
-   (`console=ttyAMA0,115200`).
