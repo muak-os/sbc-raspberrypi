@@ -85,10 +85,8 @@ _build-oci name context dockerfile *extra:
         --file {{ context }}/{{ dockerfile }} \
         {{ context }}
     if [ "{{ container_runtime }}" = "podman" ] && [ "{{ push }}" = "true" ]; then
-        podman push --tls-verify=false "${image}"
-        if [ "{{ latest }}" = "true" ]; then
-            podman push --tls-verify=false "{{ registry }}/{{ name }}:latest"
-        fi
+        {{ container_runtime }} push "${image}"
+        if [ "{{ latest }}" = "true" ]; then {{ container_runtime }} push "{{ registry }}/{{ name }}:latest"; fi
     fi
 
 [private]
