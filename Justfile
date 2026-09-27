@@ -3,9 +3,9 @@
 # Prerequisites: docker/podman, just, git
 # Run `just --list` for available recipes
 
-set positional-arguments
 set shell := ["bash", "-euo", "pipefail", "-c"]
 set script-interpreter := ["bash", "-euo", "pipefail"]
+set positional-arguments
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Configuration
@@ -15,9 +15,14 @@ set script-interpreter := ["bash", "-euo", "pipefail"]
 
 registry := env_var_or_default("REGISTRY", "ghcr.io/muak-os")
 tag := env_var_or_default("TAG", "latest")
+tools := env_var_or_default("TOOLS", registry + "/tools:latest")
 push := env_var_or_default("PUSH", "false")
 latest := env_var_or_default("LATEST", "false")
 board := env_var_or_default("BOARD", "rpi_generic")
+
+# Overlay image repository
+
+overlay_repository := if board == "rpi_5" { "sbc/raspberrypi-5" } else { "sbc/raspberrypi" }
 
 # Container runtime
 
@@ -34,7 +39,14 @@ red := '\e[31m'
 reset := '\e[0m'
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Recipes
+# Main Recipes
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Full local development build (build → annotate)
+dev: build annotate
+
+# ─────────────────────────────────────────────────────────────────────────────
+# OCI Images
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Build the shared images needed by the board overlays (u-boot, firmware)
@@ -44,23 +56,33 @@ shared:
     just _build-oci sbc/raspberrypi/firmware shared/raspberrypi-firmware Dockerfile
     printf "{{ green }}Shared images built{{ reset }}\n"
 
-# Build the BOARD overlay image (linux/arm64) and push when PUSH=true
+# Build the specific board overlay image and push when PUSH=true
 [script]
 build: shared
-    uboot_image="{{ registry }}/sbc/raspberrypi/u-boot:{{ tag }}"
-    firmware_image="{{ registry }}/sbc/raspberrypi/firmware:{{ tag }}"
     case "{{ board }}" in
-        rpi_generic) image_name="sbc/raspberrypi" ;;
-        rpi_5)       image_name="sbc/raspberrypi-5" ;;
+        rpi_generic|rpi_5) ;;
         *) printf "{{ red }}Error:{{ reset }} no image name for board {{ board }}\n"; exit 1 ;;
     esac
-    just _build-oci "$image_name" "{{ board }}" Dockerfile \
+    uboot_image="{{ registry }}/sbc/raspberrypi/u-boot:{{ tag }}"
+    firmware_image="{{ registry }}/sbc/raspberrypi/firmware:{{ tag }}"
+    just _build-oci "{{ overlay_repository }}" "{{ board }}" Dockerfile \
         --build-arg "UBOOT_IMAGE=$uboot_image" \
         --build-arg "FIRMWARE_IMAGE=$firmware_image"
-    printf "{{ green }}Overlay image built: {{ registry }}/$image_name:{{ tag }}{{ reset }}\n"
+    printf "{{ green }}Overlay image built: {{ registry }}/{{ overlay_repository }}:{{ tag }}{{ reset }}\n"
+
+# Annotate an OCI image in the registry with per-entry sizes.
+[arg("image", long="image")]
+annotate image=(registry + "/" + overlay_repository + ":" + tag):
+    @printf "{{ cyan }}Annotating OCI image {{ image }}{{ reset }}\n"
+    {{ container_runtime }} run --rm --network=host \
+        -e KOCI_REGISTRY_USERNAME -e KOCI_REGISTRY_PASSWORD \
+        {{ tools }} \
+        /koci annotate \
+            --image "{{ image }}" \
+            --annotation dev.muak.sizes
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Private helpers
+# Private Helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
 [private]
