@@ -15,7 +15,7 @@ set positional-arguments
 
 registry := env_var_or_default("REGISTRY", "ghcr.io/muak-os")
 tag := env_var_or_default("TAG", "latest")
-tools := env_var_or_default("TOOLS", "ghcr.io/muak-os/tools:latest")
+toolchain := env_var_or_default("TOOLCHAIN", "ghcr.io/muak-os/toolchain:latest")
 push := env_var_or_default("PUSH", "false")
 latest := env_var_or_default("LATEST", "false")
 board := env_var_or_default("BOARD", "rpi_generic")
@@ -55,7 +55,7 @@ reset := '\e[0m'
 # Full local development build (build → annotate)
 [group('build')]
 dev: build annotate
-    @printf "{{ green }}Development build complete. Tools used: {{ bold }}{{ tools }}{{ reset }}\n"
+    @printf "{{ green }}Development build complete. Toolchain used: {{ bold }}{{ toolchain }}{{ reset }}\n"
 
 # Build the shared images needed by the board overlays (u-boot, firmware)
 [group('build')]
@@ -91,7 +91,7 @@ annotate image=(registry + "/" + overlay_repository + ":" + tag):
     @printf "{{ cyan }}Annotating OCI image {{ image }}{{ reset }}\n"
     {{ container_runtime }} run --rm --network=host \
         -e KOCI_REGISTRY_USERNAME -e KOCI_REGISTRY_PASSWORD \
-        {{ tools }} \
+        {{ toolchain }} \
         /koci annotate \
             --image "{{ image }}" \
             --annotation dev.muak.sizes
