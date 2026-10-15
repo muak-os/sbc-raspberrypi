@@ -20,5 +20,5 @@ A local OCI registry makes iterative testing easy:
 ```sh
 podman run -d -p 5000:5000 --name registry docker.io/library/registry:3
 
-REGISTRY="localhost:5000" BOARD=rpi_5 PUSH=true LATEST=true just build
+REGISTRY="localhost:5000" BOARD=rpi_5 just build
 ```

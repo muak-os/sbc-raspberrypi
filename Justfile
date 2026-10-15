@@ -14,10 +14,9 @@ set positional-arguments
 # Global settings
 
 registry := env_var_or_default("REGISTRY", "ghcr.io/muak-os")
-tag := env_var_or_default("TAG", "latest")
+tag := env_var_or_default("TAG", "dev")
 toolchain := env_var_or_default("TOOLCHAIN", "ghcr.io/muak-os/toolchain@sha256:b5202e06f797ab99a766617238d181fede148fa8f83a15d218b33599752de4fa")
 push := env_var_or_default("PUSH", "true")
-latest := env_var_or_default("LATEST", "false")
 board := env_var_or_default("BOARD", "rpi_generic")
 
 # Overlay image repository
@@ -105,18 +104,13 @@ _build-oci name context dockerfile *extra:
     image="{{ registry }}/{{ name }}:{{ tag }}"
     cache_from=$(just _cache-from "{{ name }}")
     cache_to=$(just _cache-to "{{ name }}")
-    tags="--tag ${image}"
-    if [ "{{ latest }}" = "true" ]; then
-        tags="${tags} --tag {{ registry }}/{{ name }}:latest"
-    fi
-    printf "{{ cyan }}Building OCI:{{ reset }} {{ name }} (push={{ push }}, latest={{ latest }})\n"
+    printf "{{ cyan }}Building OCI:{{ reset }} {{ name }} (push={{ push }})\n"
     {{ build_cmd }} {{ common_args }} {{ pull_arg }} \
-        ${cache_from} ${cache_to} {{ push_arg }} ${tags} {{ extra }} \
+        ${cache_from} ${cache_to} {{ push_arg }} --tag "${image}" {{ extra }} \
         --file {{ context }}/{{ dockerfile }} \
         {{ context }}
     if [ "{{ container_runtime }}" = "podman" ] && [ "{{ push }}" = "true" ]; then
         {{ container_runtime }} push "${image}"
-        if [ "{{ latest }}" = "true" ]; then {{ container_runtime }} push "{{ registry }}/{{ name }}:latest"; fi
     fi
 
 [private]
