@@ -11,7 +11,8 @@ ARG FIRMWARE_SHA256
 
 RUN apk add --no-cache wget ca-certificates
 
-RUN wget -q \
+RUN wget -nv --tries=5 --waitretry=5 --retry-connrefused \
+    --connect-timeout=20 --read-timeout=120 \
   "https://github.com/raspberrypi/firmware/archive/refs/tags/${FIRMWARE_VERSION}.tar.gz" \
   -O firmware.tar.gz \
   && echo "${FIRMWARE_SHA256}  firmware.tar.gz" | sha256sum -c - \

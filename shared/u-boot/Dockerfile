@@ -2,7 +2,7 @@
 # U-Boot for Raspberry Pi (rpi_arm64_defconfig).
 
 ARG UBOOT_VERSION=2026.01
-ARG UBOOT_SHA256=b60d5865cefdbc75da8da4156c56c458e00de75a49b80c1a2e58a96e30ad0d54
+ARG UBOOT_SHA256=536c2204bb875236dcba41f5a5802090039a4b7a704dd284fcb9640e66a84a8a
 
 FROM --platform=$BUILDPLATFORM docker.io/debian:bookworm-slim AS build
 
@@ -31,10 +31,12 @@ RUN apt-get update \
 
 WORKDIR /src
 
-RUN wget -q "https://ftp.denx.de/pub/u-boot/u-boot-${UBOOT_VERSION}.tar.bz2" \
-  && echo "${UBOOT_SHA256}  u-boot-${UBOOT_VERSION}.tar.bz2" | sha256sum -c - \
-  && tar xjf "u-boot-${UBOOT_VERSION}.tar.bz2" --strip-components=1 \
-  && rm "u-boot-${UBOOT_VERSION}.tar.bz2"
+RUN wget -nv --tries=5 --waitretry=5 --retry-connrefused \
+  --connect-timeout=20 --read-timeout=120 \
+  "https://source.denx.de/u-boot/u-boot/-/archive/v${UBOOT_VERSION}/u-boot-v${UBOOT_VERSION}.tar.bz2" \
+  && echo "${UBOOT_SHA256}  u-boot-v${UBOOT_VERSION}.tar.bz2" | sha256sum -c - \
+  && tar xjf "u-boot-v${UBOOT_VERSION}.tar.bz2" --strip-components=1 \
+  && rm "u-boot-v${UBOOT_VERSION}.tar.bz2"
 
 RUN make rpi_arm64_defconfig
 
